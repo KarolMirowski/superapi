@@ -12,17 +12,18 @@ namespace superapi.Services
             new Character(),
             new Character(){Name = "Sam", Id = 1, HitPoints = 777}
         };
-        public Character AddCharacter(Character newCharacter)
+        public async Task<Character> AddCharacter(Character newCharacter)
         {
             return characters[0];
         }
 
-        public List<Character> GetAllCharacters()
+        public async Task<List<Character>> GetAllCharacters()
         {
+            //return await Task.FromResult(characters);
             return characters;
         }
 
-        public Character GetCharacterById(int id)
+        public async Task<Character> GetCharacterById(int id)
         {
             var character = characters.FirstOrDefault(c => c.Id == id);
             if(character is null) 
