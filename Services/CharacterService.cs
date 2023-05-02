@@ -12,24 +12,28 @@ namespace superapi.Services
             new Character(),
             new Character(){Name = "Sam", Id = 1, HitPoints = 777}
         };
-        public async Task<Character> AddCharacter(Character newCharacter)
+        public async Task<ServiceResponse<List<Character>>> AddCharacter(Character newCharacter)
         {
-            return characters[0];
+            var serviceResponse = new ServiceResponse<List<Character>>();
+            characters.Add(newCharacter);
+            serviceResponse.Data = characters;
+            return serviceResponse;
         }
 
-        public async Task<List<Character>> GetAllCharacters()
+        public async Task<ServiceResponse<List<Character>>> GetAllCharacters()
         {
             //return await Task.FromResult(characters);
-            return characters;
+            var serviceResponse = new ServiceResponse<List<Character>>();
+            serviceResponse.Data = characters;
+            return serviceResponse;
         }
 
-        public async Task<Character> GetCharacterById(int id)
+        public async Task<ServiceResponse<Character>> GetCharacterById(int id)
         {
+            var serviceResponse = new ServiceResponse<Character>();
             var character = characters.FirstOrDefault(c => c.Id == id);
-            if(character is null) 
-                throw new Exception("Character not found");
-            else    
-                return character;
+            serviceResponse.Data = character;
+            return serviceResponse;
         }
     }
 }
