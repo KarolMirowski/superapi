@@ -21,9 +21,9 @@ namespace superapi.Services
         };
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
         {
-            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>(); 
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             var addedCharacter = _mapper.Map<Character>(newCharacter);
-            addedCharacter.Id = characters.Max(c => c.Id) + 1 ;
+            addedCharacter.Id = characters.Max(c => c.Id) + 1;
             characters.Add(addedCharacter);
             serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             return serviceResponse;
@@ -51,16 +51,24 @@ namespace superapi.Services
             //var  character = _mapper.Map<GetCharacterDto>(updatedCharacter);
             //characters.Insert( character.Id, characterToUpdate);
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
-            var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id)!;
+            try
+            {
+                var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id)!;
 
-            character.Name = updatedCharacter.Name;
-            character.Strength= updatedCharacter.Strength;
-            character.Intelligence = updatedCharacter.Intelligence;
-            character.HitPoints = updatedCharacter.HitPoints;
-            character.KlasaPostaci = updatedCharacter.KlasaPostaci;
-            character.MyProperty = updatedCharacter.MyProperty;
+                character.Name = updatedCharacter.Name;
+                character.Strength = updatedCharacter.Strength;
+                character.Intelligence = updatedCharacter.Intelligence;
+                character.HitPoints = updatedCharacter.HitPoints;
+                character.KlasaPostaci = updatedCharacter.KlasaPostaci;
+                character.MyProperty = updatedCharacter.MyProperty;
 
-            serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
+                serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message + "There is no character with specified id";
+            }
             return serviceResponse;
         }
     }
