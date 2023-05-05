@@ -37,7 +37,18 @@ public class CharacterController : ControllerBase
     [HttpPut]
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
     {
-        return Ok(await _characterService.UpdateCharacter(updatedCharacter));
+        var response = await _characterService.UpdateCharacter(updatedCharacter);
+        if (response.Data is null)
+            return NotFound(response);
+        return Ok(response);
+    }
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> DeleteCharacter(int id)
+    {
+        var response = await _characterService.DeleteCharacter(id);
+        if (response.Data is null)
+            return NotFound(response);
+        return Ok(response);
     }
 
 }

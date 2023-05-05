@@ -23,7 +23,10 @@ namespace superapi.Services
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             var addedCharacter = _mapper.Map<Character>(newCharacter);
-            addedCharacter.Id = characters.Max(c => c.Id) + 1;
+            if(characters.Count != 0)
+                addedCharacter.Id = characters.Max(c => c.Id) + 1;
+            else
+                addedCharacter.Id = 0;    
             characters.Add(addedCharacter);
             serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             return serviceResponse;
@@ -70,6 +73,24 @@ namespace superapi.Services
                 serviceResponse.Message = ex.Message + "There is no character with specified id";
             }
             return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
+        {
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            try
+            {
+                var character = characters.First(c => c.Id == id);
+                characters.Remove(character);
+                serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message + "There is no character with specified id";
+            }
+            return serviceResponse;
+            
         }
     }
 }
