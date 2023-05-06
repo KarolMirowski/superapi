@@ -7,56 +7,73 @@ namespace superapi.Services
 {
     public class CharacterService : ICharacterService
     {
-        public CharacterService(IMapper mapper)
+        public CharacterService(IMapper mapper, DataContext context)
         {
             _mapper = mapper;
+            _context = context;
         }
 
-        IMapper _mapper;
-
+        readonly IMapper _mapper;
+        readonly DataContext _context;
         private static List<Character> characters = new List<Character>()
         {
             new Character(),
             new Character(){Name = "Sam", Id = 1, HitPoints = 777}
         };
+
+        /*
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            var addedCharacter = _mapper.Map<Character>(newCharacter);
+            //var addedCharacter = _mapper.Map<Character>(newCharacter);
+            var dbCharacter = _mapper.Map<Character>(newCharacter);
             if(characters.Count != 0)
-                addedCharacter.Id = characters.Max(c => c.Id) + 1;
+                dbCharacter.Id = characters.Max(c => c.Id) + 1;
             else
-                addedCharacter.Id = 0;    
-            characters.Add(addedCharacter);
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+                dbCharacter.Id = 0;    
+            await _context.Characters.AddAsync(dbCharacter);
+            serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
             return serviceResponse;
         }
+        */
+        public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
+        {
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            var dbCharacter = _mapper.Map<Character>(newCharacter);
+
+            await _context.Characters.AddAsync(dbCharacter);
+            await _context.SaveChangesAsync();
+
+            serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+            return serviceResponse;
+        }
+
+
 
 
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             //return await Task.FromResult(characters);
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+            var dbCharacters = await _context.Characters.ToListAsync();   // ????
+            serviceResponse.Data = dbCharacters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
-            var character = characters.FirstOrDefault(c => c.Id == id);
-            serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
+            var dbCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+            serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
         {
-            //var  character = _mapper.Map<GetCharacterDto>(updatedCharacter);
-            //characters.Insert( character.Id, characterToUpdate);
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
             try
             {
-                var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id)!;
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
 
                 character.Name = updatedCharacter.Name;
                 character.Strength = updatedCharacter.Strength;
@@ -64,6 +81,8 @@ namespace superapi.Services
                 character.HitPoints = updatedCharacter.HitPoints;
                 character.KlasaPostaci = updatedCharacter.KlasaPostaci;
                 character.MyProperty = updatedCharacter.MyProperty;
+
+                await _context.SaveChangesAsync();
 
                 serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
             }
@@ -75,22 +94,24 @@ namespace superapi.Services
             return serviceResponse;
         }
 
+
         public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             try
             {
-                var character = characters.First(c => c.Id == id);
-                characters.Remove(character);
-                serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+                var character = await _context.Characters.FirstAsync(c => c.Id == id);
+                _context.Characters.Remove(character);
+                serviceResponse.Data = _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             }
             catch (Exception ex)
             {
                 serviceResponse.Success = false;
                 serviceResponse.Message = ex.Message + "There is no character with specified id";
             }
+            await _context.SaveChangesAsync();
             return serviceResponse;
-            
+
         }
     }
 }
